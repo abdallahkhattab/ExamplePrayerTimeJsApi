@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    background-color: #f0f0f0;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.prayers {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.city h1 {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.prayerDate h3 {
+    font-size: 1.5rem;
+    color: #7f8c8d;
+}
+
+#date {
+    font-size: 1.25rem;
+    color: #2980b9;
+    margin-bottom: 20px;
+}
+
+.prayerTime {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.prayerTime div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ecf0f1;
+    border-radius: 8px;
+    padding: 10px 20px;
+    transition: background-color 0.3s;
+}
+
+.prayerTime div:hover {
+    background-color: #bdc3c7;
+}
+
+.title h3, .title h2 {
+    font-size: 1.5rem;
+    color: #16a085;
+}
+
+.timing h1 {
+    font-size: 2rem;
+    color: #e74c3c;
+}
+
+.city select {
+    margin-top: 20px;
+    padding: 10px;
+    font-size: 1.1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f9f9;
+    color: #34495e;
+}
+
+    </style>
+</head>
+
+
+<body>
+    
+
+    <div class="prayers">
+        <div class="city">
+            <h1 id="cityTitle">الرياض</h1>
+        </div>
+
+        <div class="prayerDate">  
+            <h3>تاريخ اليوم</h3>
+            <p id="date"> الجمعه24 نوفمبر</p>
+             </div>
+
+
+            <div class="prayerTime">
+                <div class="fajr">
+                    <div class="title">
+                        <h3>الفجر</h3>
+                    </div>
+
+                    <div class="timing" id="fajr-time">
+                        <h1></h1>
+                    </div>
+                </div>
+                <div class="shouroq">
+                    <div class="title">
+                        <h3>الشروق</h3>
+                    </div>
+                    <div class="timing" id="sunrise-time">
+                        <h1>4:11</h1>
+                    </div>
+
+                </div>
+                <div class="duhr">
+                    <div class="title"> <h2>الظهر</h2></div>
+
+                    <div class="timing" id="duhur-time">
+                        <h1>4:11</h1>
+                    </div>
+
+                </div>
+                <div class="asr">
+                    <div class="title" > 
+                        <h2>العصر</h2>
+                    </div>
+
+                    <div class="timing" id="asr-time">
+                        <h1>4:11</h1>
+                    </div>
+
+                </div>
+                <div class="maghrib" >
+                  <div class="title">
+                    <h2>المغرب</h2>
+                  </div>
+                  <div class="timing" id="maghrib-time">
+                    <h1>4:11</h1>
+                </div>
+
+                </div>
+                <div class="ishaa">
+                    <div class="title"> 
+                        <h2>العشاء</h2>
+                    </div>
+
+                    <div class="timing" id="isha-time">
+                        <h1>4:11</h1>
+                    </div>
+
+                </div>
+            </div>
+
+
+            <div class="city">
+                <select id="citySelector">
+                   
+                </select>
+            </div>
+        </div>
+    
+</body>
+
+<script src="node_modules/axios/dist/axios.min.js"></script>
+
+<script>
+    // Define the list of cities
+    let cities = ["الرياض", "الشرقيه", "جده", "المدينه المنوره"];
+
+    // Populate city selector dropdown
+    for (let city of cities) {
+        const content = `<option value="${city}">${city}</option>`;
+        document.getElementById("citySelector").innerHTML += content;
+    }
+
+    // Trigger prayer time API on city change
+    document.getElementById("citySelector").addEventListener("change", function() {
+        const selectedCity = document.getElementById("citySelector").value;
+        document.getElementById("cityTitle").innerText = selectedCity;
+        getPrayerTimes(selectedCity);
+    });
+
+    // Function to get prayer times by city
+    function getPrayerTimes(city) {
+        let params = {
+            country: "SA",
+            city: city
+        };
+        axios.get('http://api.aladhan.com/v1/timingsByCity', { params: params })
+          .then(function (response) {
+            console.log(response.data.data.timings);
+            console.log(response.data.data.date.readable);
+
+            let date = response.data.data.date.readable;
+            let day = response.data.data.date.hijri.weekday.ar;
+            let timings = response.data.data.timings;
+
+            // Fill in the prayer times
+            fillTimeForPrayer("fajr-time", timings.Fajr);
+            fillTimeForPrayer("sunrise-time", timings.Sunrise);
+            fillTimeForPrayer("duhur-time", timings.Dhuhr);
+            fillTimeForPrayer("asr-time", timings.Asr);
+            fillTimeForPrayer("maghrib-time", timings.Maghrib);
+            fillTimeForPrayer("isha-time", timings.Isha);
+
+            // Fill in the date
+            fillDate("date", day, date);
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+    }
+
+    // Helper functions to update the DOM
+    function fillTimeForPrayer(id, time) {
+        document.getElementById(id).innerHTML = `<h1>${time}</h1>`;
+    }
+
+    function fillDate(id, todaydate, date) {
+        document.getElementById(id).innerHTML = `<p>${todaydate + " " + date}</p>`;
+    }
+
+    // Initial call to load prayer times for the default city (رياض)
+    getPrayerTimes("الرياض");
+</script>
+
+</html>
